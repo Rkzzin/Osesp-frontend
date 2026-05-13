@@ -1,8 +1,34 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { mockEvents } from '../data';
-import { Calendar, MapPin, Users, Music } from 'lucide-react';
+import { MapPin, Users } from 'lucide-react';
+import { api } from '../services/api';
 
 export default function EventList() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const data = await api.getConcerts();
+        setEvents(data);
+      } catch (error) {
+        console.error("Falha ao carregar eventos do backend:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadEvents();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto py-16 px-6 text-osesp-brown font-serif italic text-2xl">
+        Carregando temporada...
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto py-16 px-6">
       <header className="mb-16">
@@ -13,7 +39,7 @@ export default function EventList() {
 
       {/* Tabela Editorial */}
       <div className="w-full border-t border-osesp-brown/20">
-        {mockEvents.map((event) => (
+        {events.map((event) => (
           <div 
             key={event.id} 
             className="group grid grid-cols-11 items-center py-10 border-b border-osesp-brown/10 hover:bg-white transition-all duration-500 px-4"
@@ -21,18 +47,18 @@ export default function EventList() {
             {/* Informações Principais */}
             <div className="col-span-6 space-y-1">
               <h3 className="text-3xl font-serif font-semibold text-osesp-brown tracking-tight">
-                {event.name}
+                {event.nome}
               </h3>
               <div className="flex items-center gap-6 text-xs font-bold text-osesp-brown/40 uppercase tracking-widest">
-                <span className="flex items-center gap-2"><MapPin size={12}/> {event.location}</span>
-                <span className="flex items-center gap-2"><Users size={12}/> {event.customersCount} inscritos</span>
+                <span className="flex items-center gap-2"><MapPin size={12}/> {event.local}</span>
+                <span className="flex items-center gap-2"><Users size={12}/> {event.customersCount || 0} inscritos</span>
               </div>
             </div>
 
             {/* Data */}
             <div className="col-span-3 text-center">
               <span className="font-serif italic text-2xl text-osesp-brown/60 group-hover:text-osesp-brown transition-colors">
-                {new Date(event.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
+                {new Date(event.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
               </span>
             </div>
 
